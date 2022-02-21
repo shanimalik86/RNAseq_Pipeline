@@ -1,0 +1,10 @@
+trim:
+        length: 30
+        window: "4:18"
+        lead: 28
+        trail: 28
+        strand: "PE"
+
+data: "/home/a-m/fazal2/RNAseq_workflow"
+gtf: "/home/a-m/fazal2/xenograft/data/genome/human_mouse.gtf"
+fasta: "/home/a-m/fazal2/xenograft/data/genome/human_mouse.fna"

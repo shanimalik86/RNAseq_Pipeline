@@ -1,0 +1,8 @@
+__default__:
+ partition: "normal"
+ cpus: "{threads}"
+ mem: "65g"
+index:
+ mem: "32g"
+star:
+ mem: "65g"
