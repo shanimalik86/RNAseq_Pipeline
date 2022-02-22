@@ -5,9 +5,9 @@ envvars:
 
 DATA_DIR = config["data"]
 
-if config["trim"]["strand"]=="SE":
+if config["trim"]["type"]=="SE":
 	SAMPLES, = glob_wildcards(DATA_DIR + "/{sample}.fastq.gz")
-elif config["trim"]["strand"]=="PE":
+elif config["trim"]["type"]=="PE":
 	SAMPLES, = glob_wildcards(DATA_DIR + "/{sample}_R1.fastq.gz")
 else:
 	raise ValueError('please specify only "SE" or "PE" for the "strand" parameter in the config file.')
@@ -18,7 +18,7 @@ rule all:
 	message:
 		"i am all here"
         
-if config["trim"]["strand"]=="SE":
+if config["trim"]["type"]=="SE":
 	rule trim:
 		input: 
 			DATA_DIR + "/{sample}.fastq.gz"
@@ -55,7 +55,7 @@ else:
                         trail=config["trim"]["trail"],
                         lead=config["trim"]["lead"],
                         window=config["trim"]["window"],
-                        strand=config["trim"]["strand"]
+                        strand=config["trim"]["type"]
 		shell:
 			"""
 			mkdir -p trimmomatic_fastq
@@ -84,7 +84,7 @@ rule STAR_index:
 		STAR --runThreadN {threads} --runMode genomeGenerate --genomeDir {params.genome_dir} --genomeFastaFiles {input.fasta} --limitGenomeGenerateRAM 32000000000 --outTmpDir /scratch/{params.index_id}
 		"""
 
-if config["trim"]["strand"]=="SE":
+if config["trim"]["type"]=="SE":
 
 	rule mapping:
 		input:
