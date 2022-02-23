@@ -97,6 +97,7 @@ if config["type"]=="SE":
 			prefix= "star/{sample}_",
 			genome_index = "genome/",
 			gtf = config["gtf"],
+			junction = config["junction"],
 			job_id= os.environ["SLURM_JOB_ID"]
 	
 		threads: 10
@@ -105,7 +106,7 @@ if config["type"]=="SE":
 			"""
 			mkdir -p star
 			module load STAR/2.7.3a-IGB-gcc-8.2.0
-			STAR --runThreadN {threads} --readFilesCommand zcat --genomeDir {params.genome_index} --readFilesIn {input.trimfile} --sjdbGTFfile {params.gtf} --sjdbOverhang 99 --outFileNamePrefix {params.prefix} --limitGenomeGenerateRAM 60000000000 --outSAMtype BAM SortedByCoordinate --quantMode GeneCounts --outTmpDir /scratch/{params.job_id}
+			STAR --runThreadN {threads} --readFilesCommand zcat --genomeDir {params.genome_index} --readFilesIn {input.trimfile} --sjdbGTFfile {params.gtf} --sjdbOverhang {params.junction} --outFileNamePrefix {params.prefix} --limitGenomeGenerateRAM 60000000000 --outSAMtype BAM SortedByCoordinate --quantMode GeneCounts --outTmpDir /scratch/{params.job_id}
 			"""
 else:
 	rule mapping:
