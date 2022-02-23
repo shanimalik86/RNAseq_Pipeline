@@ -120,6 +120,7 @@ else:
                         prefix= "star/{sample}_",
                         genome_index = "genome/",
                         gtf = config["gtf"],
+			junction = config["junction"],
                         job_id= os.environ["SLURM_JOB_ID"]
 
                 message:
@@ -131,7 +132,7 @@ else:
                 	"""
                 	mkdir -p star
                 	module load STAR/2.7.3a-IGB-gcc-8.2.0
-                	STAR --runThreadN {threads} --readFilesCommand zcat --genomeDir {params.genome_index} --readFilesIn {input.TR1} {input.TR2} --sjdbGTFfile {params.gtf} --sjdbOverhang 99 --outFileNamePrefix {params.prefix} --limitGenomeGenerateRAM 60000000000 --outSAMtype BAM SortedByCoordinate --quantMode GeneCounts --outTmpDir /scratch/{params.job_id}
+                	STAR --runThreadN {threads} --readFilesCommand zcat --genomeDir {params.genome_index} --readFilesIn {input.TR1} {input.TR2} --sjdbGTFfile {params.gtf} --sjdbOverhang {params.junction} --outFileNamePrefix {params.prefix} --limitGenomeGenerateRAM 60000000000 --outSAMtype BAM SortedByCoordinate --quantMode GeneCounts --outTmpDir /scratch/{params.job_id}
 			"""
 
 if config["type"]=="SE":
