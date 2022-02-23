@@ -10,3 +10,4 @@ fasta: "/home/a-m/fazal2/xenograft/data/genome/human_mouse.fna"
 
 type: "PE"
 strand: 2
+junction: 99
