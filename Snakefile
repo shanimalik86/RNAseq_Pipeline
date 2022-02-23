@@ -5,9 +5,9 @@ envvars:
 
 DATA_DIR = config["data"]
 
-if config["trim"]["type"]=="SE":
+if config["type"]=="SE":
 	SAMPLES, = glob_wildcards(DATA_DIR + "/{sample}.fastq.gz")
-elif config["trim"]["type"]=="PE":
+elif config["type"]=="PE":
 	SAMPLES, = glob_wildcards(DATA_DIR + "/{sample}_R1.fastq.gz")
 else:
 	raise ValueError('please specify only "SE" or "PE" for the "strand" parameter in the config file.')
@@ -18,7 +18,7 @@ rule all:
 	message:
 		"i am all here"
         
-if config["trim"]["type"]=="SE":
+if config["type"]=="SE":
 	rule trim:
 		input: 
 			DATA_DIR + "/{sample}.fastq.gz"
@@ -31,12 +31,12 @@ if config["trim"]["type"]=="SE":
 			trail=config["trim"]["trail"],
 			lead=config["trim"]["lead"],
 			window=config["trim"]["window"],
-			strand=config["trim"]["strand"]
+			type=config["type"]
 		shell:
 			"""
 			mkdir -p trimmomatic_fastq
 			module load Trimmomatic
-			trimmomatic {params.strand} -threads 2 -phred33 {input} {output} ILLUMINACLIP:/home/apps/software/Trimmomatic/0.38-Java-1.8.0_152/adapters/TruSeq3-SE.fa:2:30:10 SLIDINGWINDOW:{params.window} LEADING:{params.lead} TRAILING:{params.trail} MINLEN:{params.length}
+			trimmomatic {params.type} -threads 2 -phred33 {input} {output} ILLUMINACLIP:/home/apps/software/Trimmomatic/0.38-Java-1.8.0_152/adapters/TruSeq3-SE.fa:2:30:10 SLIDINGWINDOW:{params.window} LEADING:{params.lead} TRAILING:{params.trail} MINLEN:{params.length}
 			"""
 else:
 	rule trim:
@@ -55,12 +55,12 @@ else:
                         trail=config["trim"]["trail"],
                         lead=config["trim"]["lead"],
                         window=config["trim"]["window"],
-                        strand=config["trim"]["type"]
+                        type=config["type"]
 		shell:
 			"""
 			mkdir -p trimmomatic_fastq
                         module load Trimmomatic
-                        trimmomatic {params.strand} -threads 2 -phred33 {input.r1} {input.r2} {output.TR1} {output.TR1un} {output.TR2} {output.TR2un} ILLUMINACLIP:/home/apps/software/Trimmomatic/0.38-Java-1.8.0_152/adapters/TruSeq3-PE.fa:2:30:10 SLIDINGWINDOW:{params.window} LEADING:{params.lead} TRAILING:{params.trail} MINLEN:{params.length}
+                        trimmomatic {params.type} -threads 2 -phred33 {input.r1} {input.r2} {output.TR1} {output.TR1un} {output.TR2} {output.TR2un} ILLUMINACLIP:/home/apps/software/Trimmomatic/0.38-Java-1.8.0_152/adapters/TruSeq3-PE.fa:2:30:10 SLIDINGWINDOW:{params.window} LEADING:{params.lead} TRAILING:{params.trail} MINLEN:{params.length}
                         """				
 rule STAR_index:	
 	input:
@@ -84,7 +84,7 @@ rule STAR_index:
 		STAR --runThreadN {threads} --runMode genomeGenerate --genomeDir {params.genome_dir} --genomeFastaFiles {input.fasta} --limitGenomeGenerateRAM 32000000000 --outTmpDir /scratch/{params.index_id}
 		"""
 
-if config["trim"]["type"]=="SE":
+if config["type"]=="SE":
 
 	rule mapping:
 		input:
@@ -133,17 +133,44 @@ else:
                 	module load STAR/2.7.3a-IGB-gcc-8.2.0
                 	STAR --runThreadN {threads} --readFilesCommand zcat --genomeDir {params.genome_index} --readFilesIn {input.TR1} {input.TR2} --sjdbGTFfile {params.gtf} --sjdbOverhang 99 --outFileNamePrefix {params.prefix} --limitGenomeGenerateRAM 60000000000 --outSAMtype BAM SortedByCoordinate --quantMode GeneCounts --outTmpDir /scratch/{params.job_id}
 			"""
-rule counts:
-	input:
-		bams = "star/{sample}_Aligned.sortedByCoord.out.bam",
-		gtf = config["gtf"]
-	output:
-		counting="counts/{sample}_featcounts.txt"
-	message:
-		"I am counting"
-	shell:
-		"""
-		mkdir -p counts
-		module load Subread
-		featureCounts -T 4 -s 2 -g gene_id -t exon -o {output.counting} -a {input.gtf} {input.bams}
-		"""
+
+if config["type"]=="SE":
+
+	rule counts:
+		input:
+			bams = "star/{sample}_Aligned.sortedByCoord.out.bam",
+			gtf = config["gtf"]
+		output:
+			counting="counts/{sample}_featcounts.txt"
+
+		params:
+			strand=config["strand"]	
+
+		message:
+			"I am counting"
+		shell:
+			"""
+			mkdir -p counts
+			module load Subread
+			featureCounts -T 4 -s {params.strand} -g gene_id -t exon -o {output.counting} -a {input.gtf} {input.bams}
+			"""
+
+else:
+        rule counts:
+                input:
+                        bams = "star/{sample}_Aligned.sortedByCoord.out.bam",
+                        gtf = config["gtf"]
+                output:
+                        counting="counts/{sample}_featcounts.txt"
+
+                params:
+                        strand=config["strand"]
+
+                message:
+                        "I am counting"
+                shell:
+                        """
+                        mkdir -p counts
+                        module load Subread
+                        featureCounts -T 4 -p -s {params.strand} -g gene_id -t exon -o {output.counting} -a {input.gtf} {input.bams}
+                        """
