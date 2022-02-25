@@ -10,7 +10,7 @@ if config["type"]=="SE":
 elif config["type"]=="PE":
 	SAMPLES, = glob_wildcards(DATA_DIR + "/{sample}_R1.fastq.gz")
 else:
-	raise ValueError('please specify only "SE" or "PE" for the "strand" parameter in the config file.')
+	raise ValueError('please specify only "SE" or "PE" for the "type" parameter in the config file.')
 	
 rule all:
 	input:
